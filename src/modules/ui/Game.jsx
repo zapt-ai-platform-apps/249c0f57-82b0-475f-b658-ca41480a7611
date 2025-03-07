@@ -40,20 +40,25 @@ const Game = ({ onGameOver }) => {
       }
     };
     
-    // Handle touch inputs
+    // Handle touch inputs with improved detection
     const handleTouchStart = (e) => {
+      e.preventDefault();
       touchStartX.current = e.touches[0].clientX;
       touchStartY.current = e.touches[0].clientY;
     };
     
     const handleTouchEnd = (e) => {
+      e.preventDefault();
       const touchEndX = e.changedTouches[0].clientX;
       const touchEndY = e.changedTouches[0].clientY;
       const diffX = touchEndX - touchStartX.current;
       const diffY = touchEndY - touchStartY.current;
       
+      // Improved swipe detection with reduced threshold
+      const swipeThreshold = 30; // Reduced threshold for easier detection
+      
       // Detect horizontal swipe for lane change
-      if (Math.abs(diffX) > 50 && Math.abs(diffX) > Math.abs(diffY)) {
+      if (Math.abs(diffX) > swipeThreshold && Math.abs(diffX) > Math.abs(diffY)) {
         if (diffX > 0) {
           game.moveRight();
         } else {
@@ -62,7 +67,7 @@ const Game = ({ onGameOver }) => {
       }
       
       // Detect vertical swipe for jump/slide
-      if (Math.abs(diffY) > 50 && Math.abs(diffY) > Math.abs(diffX)) {
+      if (Math.abs(diffY) > swipeThreshold && Math.abs(diffY) > Math.abs(diffX)) {
         if (diffY < 0) {
           game.jump();
         } else {
@@ -91,8 +96,8 @@ const Game = ({ onGameOver }) => {
     };
     
     window.addEventListener('keydown', handleKeyDown);
-    canvas.addEventListener('touchstart', handleTouchStart);
-    canvas.addEventListener('touchend', handleTouchEnd);
+    canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+    canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
     canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
     window.addEventListener('resize', handleResize);
     
@@ -107,7 +112,19 @@ const Game = ({ onGameOver }) => {
     };
   }, [onGameOver, score]);
   
-  // Handle mobile button controls
+  // Handle directional controls for mobile
+  const handleMoveLeft = () => {
+    if (canvasRef.current && canvasRef.current.game) {
+      canvasRef.current.game.moveLeft();
+    }
+  };
+  
+  const handleMoveRight = () => {
+    if (canvasRef.current && canvasRef.current.game) {
+      canvasRef.current.game.moveRight();
+    }
+  };
+  
   const handleTapJump = () => {
     if (canvasRef.current && canvasRef.current.game) {
       canvasRef.current.game.jump();
@@ -128,17 +145,39 @@ const Game = ({ onGameOver }) => {
       />
       <GameHUD score={score} />
       
-      {/* Mobile controls - shown only on touch devices */}
-      <div className="md:hidden absolute bottom-8 left-0 right-0 flex justify-center gap-24">
+      {/* Enhanced mobile controls with all directions */}
+      <div className="md:hidden absolute bottom-20 left-0 right-0 flex flex-col items-center">
+        {/* Up button (jump) */}
         <button
-          className="bg-white bg-opacity-30 w-20 h-20 rounded-full flex items-center justify-center text-4xl cursor-pointer"
+          className="bg-white bg-opacity-30 w-16 h-16 rounded-full flex items-center justify-center text-3xl mb-2 cursor-pointer active:bg-opacity-50"
           onClick={handleTapJump}
           aria-label="Jump"
         >
           ↑
         </button>
+        
+        {/* Left/Right buttons */}
+        <div className="flex justify-between w-48 mb-2">
+          <button
+            className="bg-white bg-opacity-30 w-16 h-16 rounded-full flex items-center justify-center text-3xl cursor-pointer active:bg-opacity-50"
+            onClick={handleMoveLeft}
+            aria-label="Move Left"
+          >
+            ←
+          </button>
+          
+          <button
+            className="bg-white bg-opacity-30 w-16 h-16 rounded-full flex items-center justify-center text-3xl cursor-pointer active:bg-opacity-50"
+            onClick={handleMoveRight}
+            aria-label="Move Right"
+          >
+            →
+          </button>
+        </div>
+        
+        {/* Down button (slide) */}
         <button
-          className="bg-white bg-opacity-30 w-20 h-20 rounded-full flex items-center justify-center text-4xl cursor-pointer"
+          className="bg-white bg-opacity-30 w-16 h-16 rounded-full flex items-center justify-center text-3xl cursor-pointer active:bg-opacity-50"
           onClick={handleTapSlide}
           aria-label="Slide"
         >

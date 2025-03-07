@@ -17,14 +17,18 @@ export const initializeGame = (canvas, callbacks) => {
   const laneWidth = 80;
   const laneSpacing = 100;
   
+  // Load player character image
+  const playerImage = new Image();
+  playerImage.src = '/1000042413-removebg-preview.png';
+  
   game = {
     ctx,
     canvas,
     player: {
       x: canvas.width / 2,
       y: canvas.height - 100,
-      width: 30,
-      height: 60,
+      width: 50,
+      height: 70,
       speed: 5,
       jumpForce: 15,
       velocityY: 0,
@@ -32,6 +36,7 @@ export const initializeGame = (canvas, callbacks) => {
       isJumping: false,
       isSliding: false,
       lane: 1, // 0: left, 1: center, 2: right
+      image: playerImage,
     },
     lanes: [
       canvas.width / 2 - laneSpacing,
@@ -76,12 +81,12 @@ export const initializeGame = (canvas, callbacks) => {
     slide() {
       if (!this.player.isSliding && !this.player.isJumping) {
         this.player.isSliding = true;
-        this.player.height = 30;
+        this.player.height = 40;
         
         // Reset after slide animation
         setTimeout(() => {
           this.player.isSliding = false;
-          this.player.height = 60;
+          this.player.height = 70;
         }, 1000);
       }
     },
@@ -241,14 +246,25 @@ export const initializeGame = (canvas, callbacks) => {
         );
       });
       
-      // Draw player
-      this.ctx.fillStyle = COLORS.player;
-      this.ctx.fillRect(
-        this.player.x - this.player.width / 2,
-        this.player.y - this.player.height,
-        this.player.width,
-        this.player.height
-      );
+      // Draw player as an image instead of a rectangle
+      if (this.player.image.complete) {
+        this.ctx.drawImage(
+          this.player.image,
+          this.player.x - this.player.width / 2,
+          this.player.y - this.player.height,
+          this.player.width,
+          this.player.height
+        );
+      } else {
+        // Fallback to rectangle if image not loaded
+        this.ctx.fillStyle = COLORS.player;
+        this.ctx.fillRect(
+          this.player.x - this.player.width / 2,
+          this.player.y - this.player.height,
+          this.player.width,
+          this.player.height
+        );
+      }
     },
   };
   
